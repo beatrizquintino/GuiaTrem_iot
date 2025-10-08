@@ -41,5 +41,10 @@ void setup() {
 }
 
 void loop() {
-
+  String msg = "Eu te amo javiana"; //Informação que será enviada para o broker
+  String topico = "AulaIoT/msg";
+  mqtt.publish(topico.c_str(), msg.c_str());
+  delay(1000);
+  Serial.println(msg);
+  mqtt.loop();
 }
