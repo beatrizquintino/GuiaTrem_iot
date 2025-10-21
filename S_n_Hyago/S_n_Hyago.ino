@@ -40,4 +40,9 @@ void setup() {
   Serial.println("\nConectado com sucesso ao broker");
 }
 
-void loop() {}
+void loop() {
+  String msg = "alguma coisa ;D";//texto com informação enviada para o broker
+  Sring topico = "AulaIot/msg";
+  mqtt.publish(topico.c_str(), msg.c_str());
+  delay(20000);
+}
