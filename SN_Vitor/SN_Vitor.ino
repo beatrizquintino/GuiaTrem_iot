@@ -8,7 +8,7 @@ const byte ledPin = 2;
 
 const String brokerURL = "test.mosquitto.org";
 const int brokerPort = 1883;
-const String topico = "TopicoBruno";
+const String topico = "TopicoVitor";
 
 const String brokerUser = "";  //variável para o user do brocker
 const String brokerPass = "";  //variável para a senha do brocker
@@ -59,7 +59,7 @@ void loop() {
     mensagem = Serial.readStringUntil('\n');
     Serial.print("Mensagem digitada: ");
     Serial.println(mensagem);
-    mqtt.publish("TopicoBeatriz",mensagem.c_str()); //envia msg
+    mqtt.publish("topicoHY",mensagem.c_str()); //envia msg
   }
   mqtt.loop(); //mantem a conexão
 }
