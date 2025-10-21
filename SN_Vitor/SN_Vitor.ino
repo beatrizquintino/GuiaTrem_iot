@@ -1,6 +1,6 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
-
+#include "env.h"
 WiFiClient client;          //cria objeto p/ WiFi
 PubSubClient mqtt(client);  //cria objeto p/ mqtt usando WiFi
 
@@ -12,11 +12,6 @@ const String topico = "TopicoVitor";
 
 const String brokerUser = "";  //variável para o user do brocker
 const String brokerPass = "";  //variável para a senha do brocker
-
-
-
-const String SSID = "FIESC_IOT_EDU";
-const String PASS = "8120gv08";
 
 void setup() {
   pinMode(ledPin, OUTPUT);
@@ -30,19 +25,20 @@ void setup() {
   Serial.println("\nConectado com sucesso!");
 
   //Configura a placa para mostra na tela
-  mqtt.setServer(brokerURL.c_str(), brokerPort);
+  mqtt.setServer(BROKER_URL, BROKER_PORT);
   Serial.println("Conectando no Broker");
   
-  String boardID = "S1-"; //Cria um nome que começa com "s1-"
-  boardID += String(random(0xffff),HEX); //Junta o "s1-" com um número aleatório Hexadecimal
+  String userId = "S1-"; //Cria um nome que começa com "s1-"
+  userId += String(random(0xffff),HEX); //Junta o "s1-" com um número aleatório Hexadecimal
 
   //Enquanto não estiver conectado mostra "."
-  while (!mqtt.connect(boardID.c_str())){
+  while (!mqtt.connected()){
+    mqtt.connect(userId.c_str(), BROKER_USR_NAME, BROKER_USR_PASS);
     Serial.print(".");
     delay(2000);
   }
 
-  mqtt.subscribe(topico.c_str());
+  mqtt.subscribe(TOPI1C);
   mqtt.setCallback(callback);
   Serial.println("\nConectado com sucesso ao broker");
 
