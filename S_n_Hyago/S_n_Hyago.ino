@@ -1,8 +1,9 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <WiFiClienteSecure.h>
 #include <env.h>
 
-WiFiClient client;          //cria objeto p/ WiFi
+WiFiClientSecure client;          //cria objeto p/ WiFi
 PubSubClient mqtt(client);  //cria objeto p/ mqtt usando WiFi
 
 const String brokerURL = "test.mosquitto.org";
@@ -17,7 +18,8 @@ const String SSID = "FIESC_IOT_EDU";
 const String PASS = "8120gv08";
 
 void setup() {
-  Serial.begin(115200);    /#include <WiFi.h>
+  Serial.begin(115200);
+  wifiClient.setInsecure();
 #include <PubSubClient.h>
 
 WiFiClient client;          //cria objeto p/ WiFi
