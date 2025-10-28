@@ -1,9 +1,10 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
+#include <WiFiClientSecure.h>
 #include "env.h"
 
-WiFiClient client;          //cria objeto p/ WiFi
-PubSubClient mqtt(client);  //cria objeto p/ mqtt usando WiFi
+WiFiClientSecure wifiClient;          //cria objeto p/ WiFi
+PubSubClient mqtt(wifiClient);  //cria objeto p/ mqtt usando WiFi
 
 const byte ledPin = 2;
 
@@ -18,6 +19,7 @@ const String brokerPass = "";  //variável para a senha do brocker
 void setup() {
   pinMode(ledPin, OUTPUT);
   Serial.begin(115200);    //configura a placa para mostrar na tela
+  wifiClient.setInsecure();
   WiFi.begin(SSID, PASS);  // tenta conectar na rede
   Serial.println("Conectando no WiFi");
   while (WiFi.status() != WL_CONNECTED) {
@@ -34,8 +36,8 @@ void setup() {
   boardID += String(random(0xffff),HEX); //Junta o "s1-" com um número aleatório Hexadecimal
 
   //Enquanto não estiver conectado mostra "."
-  while (!mqttClient.connected()){
-    mqttClient.connect(userId.c_str(), BROKER_USR_NAME, BROKER_USR_PASS)
+  while (!mqtt.connected()){
+    mqtt.connect(boardID.c_str(), BROKER_USR_NAME, BROKER_USR_PASS);
     Serial.print(".");
     delay(2000);
   }
