@@ -38,25 +38,33 @@ void setup() {
     delay(2000);
   }
 
-  mqtt.subscribe(TOPI1C);
+  mqtt.subscribe(TOPIC_LUM);
+  mqtt.subscribe(TOPIC_PRESENCA_1);
+  mqtt.subscribe(TOPIC_PRESENCA_2);
+  mqtt.subscribe(TOPIC_PRESENCA_3);
   mqtt.setCallback(callback);
   Serial.println("\nConectado com sucesso ao broker");
 
 }
 
 void loop() {
-  String mensagem = "";   //texto com informação enviada para o broker
-  // Sring topico = "AulaIot/msg";
-  // mqtt.publish(topico.c_str(), msg.c_str());
-  // delay(20000);
-  // mqtt.loop(); 
+  // String mensagem = "";   //texto com informação enviada para o broker
+  // // Sring topico = "AulaIot/msg";
+  // // mqtt.publish(topico.c_str(), msg.c_str());
+  // // delay(20000);
+  // // mqtt.loop(); 
 
-  if(Serial.available() > 0){
-    mensagem = Serial.readStringUntil('\n');
-    Serial.print("Mensagem digitada: ");
-    Serial.println(mensagem);
-    mqtt.publish("topicoHY",mensagem.c_str()); //envia msg
-  }
+  // if(Serial.available() > 0){
+  //   mensagem = Serial.readStringUntil('\n');
+  //   Serial.print("Mensagem digitada: ");
+  //   Serial.println(mensagem);
+  //   mqtt.publish("topicoHY",mensagem.c_str()); //envia msg
+  // }
+
+  mqtt.publish(TOPIC_SERVO_1);
+  mqtt.publish(TOPIC_SERVO_2);
+  mqtt.publish(TOPIC_PRESENCA_3);
+
   mqtt.loop(); //mantem a conexão
 }
 
@@ -67,15 +75,11 @@ void callback(char* topic, byte* payload, unsigned long length){
     }
     Serial.println(mensagemRecebida);
 
-  if(mensagemRecebida == "acender" ) {
-    digitalWrite(ledPin, HIGH); 
-    delay(1000);      
+  if(topic == TOPIC_LUM && mensagemRecebida == "escuro" ) {
+    digitalWrite(ledPin, HIGH);   
     Serial.println("ligando...");         
-  }
-
-  if(mensagemRecebida == "apagar" ) {              
+  } else if(topic == TOPIC_LUM && mensagemRecebida == "claro" ) {              
     digitalWrite(ledPin, LOW);  
-    delay(1000); 
     Serial.println("apagando...");
   }
 
