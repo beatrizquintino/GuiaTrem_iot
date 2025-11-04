@@ -67,7 +67,7 @@ void setup() {
     Serial.print(".");
     delay(200);
   }
-  mqtt.subscribe(TOPIC1); //vamos mudar (topico)
+  mqtt.subscribe(TOPIC_LUM); //vamos mudar (topico)
   mqtt.setCallback(callback);
   Serial.println("\nConectado com sucesso ao broker");
 }
