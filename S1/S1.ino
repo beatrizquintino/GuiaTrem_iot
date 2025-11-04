@@ -51,13 +51,18 @@ void loop() {
   //Serial.println(msg);
   //mqtt.loop();
 
-  if (Serial.available() > 0) {
+  /*if (Serial.available() > 0) {
     msg = Serial.readStringUntil('\n');
     Serial.print("Mensagem digitada: ");
     Serial.println(msg);
     msg = "Beatriz: " + msg;
     mqtt.publish("TopicoBruno", msg.c_str());  //Envia mensagem
-  }
+  } */
+
+  luz = map(analogRead(pino_LDR), 0, 4095, 0, 100);
+  char* = luz < 100 ? "claro" : "escuro";
+  mqtt.publish(TOPIC_LUM, luz);
+
   mqtt.loop();  // Mantem conexão
 }
 // Criação de função abaixo do loop
