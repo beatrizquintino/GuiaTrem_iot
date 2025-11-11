@@ -1,86 +1,119 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
-#include <WiFiClientSecure.h>
 #include "env.h"
+#include <WiFiClientSecure.h>
 
-WiFiClientSecure wifiClient;          //cria objeto p/ WiFi
-PubSubClient mqtt(wifiClient);  //cria objeto p/ mqtt usando WiFi
+#define motorF 18
+#define motorT 19
 
-const byte ledPin = 2;
+// --- WiFi & MQTT Configuration ---
+const char* WIFI_SSID = SSID;
+const char* WIFI_PASS = PASS;
 
-const String brokerURL = "test.mosquitto.org";
-const int brokerPort = 1883;
-const String topico = "TopicoBruno";
+const char* brokerURL = BROKER_URL;
+const int brokerPort = BROKER_PORT;
+const char* mqttTopic = TOPIC_1;  // Tópico usado para publish/subscribe
 
-const String brokerUser = "";  //variável para o user do brocker
-const String brokerPass = "";  //variável para a senha do brocker
+WiFiClientSecure client;
+PubSubClient mqtt(client);
 
+const int ledPin = 2;// Pino do LED embutido
+
+
+// --- Função para receber mensagens MQTT ---
+void callback(char* topic, byte* payload, unsigned int length) {
+  String msgRecebida = "";
+  for (unsigned int i = 0; i < length; i++) {
+    msgRecebida += (char)payload[i];
+  }
+
+  Serial.print("Mensagem recebida via MQTT: ");
+  Serial.println(msgRecebida);
+
+  //converter msgRecebida para int com .toInt()
+  //verificar se > 0 - HIGH / LOW
+  //verificar se < 0 - LOW / HIGH
+  // senao - LOW / LOW
+
+
+  int valorMsg = msgRecebida.toInt();
+
+  if (valorMsg > 0) {
+    digitalWrite(motorF, HIGH);
+    digitalWrite(motorT, LOW);
+  } else if (valorMsg < 0) {
+    digitalWrite(motorF, LOW);
+    digitalWrite(motorT, HIGH);
+  } else {
+    digitalWrite(motorF, LOW);
+    digitalWrite(motorT, LOW);
+  }
+
+  // Verifica se é um comando para o LED
+  if (msgRecebida == "1") {
+    digitalWrite(ledPin, HIGH);
+    Serial.println("LED ligado via MQTT");
+    mqtt.publish(mqttTopic, "LED ligado via MQTT");
+  } else if (msgRecebida == "0") {
+    digitalWrite(ledPin, LOW);
+    Serial.println("LED desligado via MQTT");
+    mqtt.publish(mqttTopic, "LED desligado via MQTT");
+  }
+}
 
 void setup() {
+  pinMode(motorF, OUTPUT);
+  pinMode(motorT, OUTPUT);
+
+  Serial.begin(115200);
+  client.setInsecure();
+  
+  // Configura o LED como saída
   pinMode(ledPin, OUTPUT);
-  Serial.begin(115200);    //configura a placa para mostrar na tela
-  wifiClient.setInsecure();
-  WiFi.begin(SSID, PASS);  // tenta conectar na rede
-  Serial.println("Conectando no WiFi");
+
+  // Conexão Wi-Fi
+  WiFi.begin(SSID, PASS);
+  Serial.print("Conectando no WiFi");
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(200);
   }
-  Serial.println("\nConectado com sucesso!");
+  Serial.println("\nConectado com sucesso ao WiFi");
 
-  //Configura a placa para mostra na tela
-  mqtt.setServer(BROKER_URL, BROKER_PORT);
-  Serial.println("Conectando no Broker");
-  
-  String boardID = "S1-"; //Cria um nome que começa com "s1-"
-  boardID += String(random(0xffff),HEX); //Junta o "s1-" com um número aleatório Hexadecimal
+  // Conexão MQTT
+  mqtt.setServer(brokerURL, brokerPort);
+  mqtt.setCallback(callback);
 
-  //Enquanto não estiver conectado mostra "."
-  while (!mqtt.connected()){
-    mqtt.connect(boardID.c_str(), BROKER_USR_NAME, BROKER_USR_PASS);
+  Serial.println("Conectando ao broker MQTT...");
+  String boardID = "S1-" + String(random(0xffff), HEX);
+
+  while (!mqtt.connect(boardID.c_str(), BROKER_USER_NAME, BROKER_USER_PASS)) {
     Serial.print(".");
-    delay(2000);
+    delay(200);
   }
 
-  mqtt.subscribe(TOPIC1);
-  mqtt.setCallback(callback);
-  Serial.println("\nConectado com sucesso ao broker");
-
+  mqtt.subscribe(mqttTopic);  // Inscreve-se no tópico
+  Serial.println("\nConectado ao broker MQTT e inscrito no tópico");
 }
 
 void loop() {
-  String mensagem = "";   //texto com informação enviada para o broker
-  // Sring topico = "AulaIot/msg";
-  // mqtt.publish(topico.c_str(), msg.c_str());
-  // delay(20000);
-  // mqtt.loop(); 
-
-  if(Serial.available() > 0){
-    mensagem = Serial.readStringUntil('\n');
-    Serial.print("Mensagem digitada: ");
-    Serial.println(mensagem);
-    mqtt.publish("TopicoBeatriz",mensagem.c_str()); //envia msg
-  }
-  mqtt.loop(); //mantem a conexão
+  mqtt.loop();  // Mantém a conexão MQTT ativa
 }
+//   // Lê comandos pela serial
+//   if (Serial.available()) {
+//     String comando = Serial.readStringUntil('\n');
+//     comando.trim();  // Remove espaços em branco
 
-void callback(char* topic, byte* payload, unsigned long length){
-    String mensagemRecebida = "";
-    for(int i = 0; i < length; i++){
-      mensagemRecebida += (char) payload[i];
-    }
-    Serial.println(mensagemRecebida);
-
-  if(mensagemRecebida == "acender" ) {
-    digitalWrite(ledPin, HIGH); 
-    delay(1000);      
-    Serial.println("ligando...");         
-  }
-
-  if(mensagemRecebida == "apagar" ) {              
-    digitalWrite(ledPin, LOW);  
-    delay(1000); 
-    Serial.println("apagando...");
-  }
-
-}
+//     if (comando == "1") {
+//       digitalWrite(ledPin, HIGH);
+//       Serial.println("LED ligado via Serial");
+//       mqtt.publish(mqttTopic, "LED ligado via Serial");
+//     } else if (comando == "0") {
+//       digitalWrite(ledPin, LOW);
+//       Serial.println("LED desligado via Serial");
+//       mqtt.publish(mqttTopic, "LED desligado via Serial");
+//     } else {
+//       Serial.println("Comando inválido. Use 1 (ligar) ou 0 (desligar).");
+//     }
+//   }
+// }
