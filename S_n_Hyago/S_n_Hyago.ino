@@ -1,46 +1,35 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
-#include <WiFiClienteSecure.h>
-#include <env.h>
+#include <WiFiClientSecure.h>
+#include "env.h"
 
 WiFiClientSecure client;          //cria objeto p/ WiFi
 PubSubClient mqtt(client);  //cria objeto p/ mqtt usando WiFi
 
-const String brokerURL = "test.mosquitto.org";
-const int brokerPort = 1883;
-
-const String brokerUser = "";  //variável para o user do brocker
-const String brokerPass = "";  //variável para a senha do brocker
-
-
-
-const String SSID = "FIESC_IOT_EDU";
-const String PASS = "8120gv08";
-
-void setup() {
-  Serial.begin(115200);
-  wifiClient.setInsecure();
-#include <PubSubClient.h>
-
-WiFiClient client;          //cria objeto p/ WiFi
-PubSubClient mqtt(client);  //cria objeto p/ mqtt usando WiFi
-
 const byte ledPin = 2;
 
-const String brokerURL = "test.mosquitto.org";
-const int brokerPort = 1883;
-const String topico = "topicoHY"; 
+int distancia = 0;
+unsigned long tempo = 0;
 
-const String brokerUser = "";  //variável para o user do brocker
-const String brokerPass = "";  //variável para a senha do brocker
+//sensores s1
+const byte tringg_pin_1= 21;
+const byte echo_pin_1= 19;
 
+//sensores s2
+const byte tringg_pin_2= 25;
+const byte echo_pin_2= 27;
 
-
-const String SSID = "FIESC_IOT_EDU";
-const String PASS = "8120gv08";
 
 void setup() {
+//led  
   pinMode(ledPin, OUTPUT);
+
+//sensores  
+  pinMode(tringg_pin_1, OUTPUT);
+  pinMode(echo_pin_1, INPUT);
+  //repetir para o 2
+  
+  client.setInsecure();                                                                  
   Serial.begin(115200);    //configura a placa para mostrar na tela
   WiFi.begin(SSID, PASS);  // tenta conectar na rede
   Serial.println("Conectando no WiFi");
@@ -72,25 +61,42 @@ void setup() {
   Serial.println("\nConectado com sucesso ao broker");
 }
 
-void loop() {
-  /*String msg = "TESTE"; //Informação que será enviada para o broker
-  String topico = "AulaIoT/msg";
-  mqtt.publish(topico.c_str(), msg.c_str());
-  delay(1000);
-  Serial.println(msg);
-  mqtt.loop();*/
- 
+long lerDistancia(int trigg_pin, int echo_pin) {
+  digitalWrite(trigg_pin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigg_pin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigg_pin, LOW);
+  
+  long duracao = pulseIn(echo_pin, HIGH);
+  long distancia = duracao * 349.24 / 2 / 10000;
+  
+  return distancia;
+}
 
- //envia a mensagem para um lugar
-  String msg = "";
-  if(Serial.available() > 0 ){
-    msg = Serial.readStringUntil('\n'); //avalia as letras escritas ate encontrar \n assim colocando dentro de 'mensagem'
-    Serial.print("mensagem digitada: ");
-    Serial.println(msg);
-    
-    mqtt.publish("TopicoVitor", msg.c_str()); // envia a mensagem 
+void loop() {
+  //ler ultrassonico 1
+  long distancia_1 = lerDistancia(trigg_pin_1, echo_pin_1);
+  Serial.printf("Distância: %.2fcm\n",distancia_1);
+  
+  //se <10 publica
+  if (distancia_1 < 10) {
+    mqtt.publish(TOPIC_PRESENCA_1, "Detectado"); 
   }
-  mqtt.loop();
+
+
+  //ler ultrassonico 2
+  long distancia_2 = lerDistancia(trigg_pin_2, echo_pin_2);
+  Serial.printf("Distância: %.2fcm\n",distancia_2);
+  //se <10 publica
+  if (distancia_2 < 10) {
+  mqtt.publish(TOPIC_PRESENCA_2, "Detectado"); 
+  
+  }
+  
+
+  mqtt.loop();  // Mantem conexão
+  delay(500);
 }
 
 void callback(char* topic, byte* payload, unsigned long length){
@@ -112,33 +118,4 @@ void callback(char* topic, byte* payload, unsigned long length){
     delay(1000); 
     Serial.println("apagando...");
   }
-}/configura a placa para mostrar na tela
-  WiFi.begin(SSID, PASS);  // tenta conectar na rede
-  Serial.println("Conectando no WiFi");
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(200);
-  }
-  Serial.println("\nConectado com sucesso!");
-
-  //Configura a placa para mostra na tela
-  mqtt.setServer(brokerURL.c_str(), brokerPort);
-  Serial.println("Conectando no Broker");
-  
-  String boardID = "S1-"; //Cria um nome que começa com "s1-"
-  boardID += String(random(0xffff),HEX); //Junta o "s1-" com um número aleatório Hexadecimal
-
-  //Enquanto não estiver conectado mostra "."
-  while (!mqtt.connect(boardID.c_str())){
-    Serial.print(".");
-    delay(200);
-  }
-  Serial.println("\nConectado com sucesso ao broker");
-}
-
-void loop() {
-  String msg = "alguma coisa ;D";//texto com informação enviada para o broker
-  Sring topico = "AulaIot/msg";
-  mqtt.publish(topico.c_str(), msg.c_str());
-  delay(20000);
 }
