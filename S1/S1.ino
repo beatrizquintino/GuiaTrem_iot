@@ -2,6 +2,9 @@
 #include <PubSubClient.h>
 #include <WiFiClientSecure.h>
 #include "env.h"
+#include <DHT.h>
+
+// ESP32Servo.h
 
 #define DHTPIN 4
 #define DHTTYPE DHT11
@@ -24,7 +27,8 @@ float umidade = 0;
 
 void setup() {
   Serial.begin(115200);    //configura a placa para mostrar na tela
-  WiFi.begin(SSId, PASS);  // tenta conectar na rede
+  client.setInsecure();
+  WiFi.begin(SSID, PASS);  // tenta conectar na rede
   Serial.println("Conectando no WiFi");
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
@@ -42,16 +46,16 @@ void setup() {
   //Enquanto não estiver conectado mostra "."
   while (!mqtt.connected()) {
     Serial.print(".");
-    mqttClient.connect(userId.c_str(), BROKER_USER_NAME, BROKER_USER_PASS);
-    Serial.print(".");
+    mqtt.connect(boardID.c_str(), BROKER_USER_NAME, BROKER_USER_PASS);
+    Serial.println(mqtt.state());
     delay(2000);
   }
-  mqtt.subscribe(TOPIC1);
+  mqtt.subscribe(TOPIC_LUM);
   mqtt.setCallback(callback);
   Serial.println("\nConectado com sucesso ao broker");
 
   //DHT
-  sensorDHT.begin();
+  dht.begin();
 
   //presença
   pinMode(trigg_pin, OUTPUT);
@@ -73,23 +77,28 @@ long lerDistancia() {
 }
 
 void loop() {
-  luz = map(analogRead(pino_LDR), 0, 4095, 0, 100);
-  char* = luz < 100 ? "claro" : "escuro";
-  mqtt.publish(TOPIC_LUM, luz);
+  int luz = map(analogRead(pino_LDR), 0, 4095, 0, 100);
+  char* luminosidade = "";
+  if(luz > 95){
+    luminosidade = "escuro";
+  }else{
+    luminosidade = "claro";
+  }
+  mqtt.publish(TOPIC_LUM, luminosidade);
 
-  temperatura = sensorDHT.readTemperature(); 
+  temperatura = dht.readTemperature(); 
   mqtt.publish(TOPIC_TEMP, String(temperatura).c_str());
   
-  umidade = sensorDHT.readHumidity();
+  umidade = dht.readHumidity();
   mqtt.publish(TOPIC_UMID, String(umidade).c_str());
 
   //DHT
   Serial.print("Umidade: ");
   Serial.print(umidade);
-  Serial.print("%");
-  Serial.println("Temperatura: ");
+  Serial.println("%");
+  Serial.print("Temperatura: ");
   Serial.print(temperatura);
-  Serial.print("°C");
+  Serial.println("°C");
 
   //presença
   long distancia = lerDistancia();
