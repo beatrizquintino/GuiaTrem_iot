@@ -12,11 +12,11 @@ int distancia = 0;
 unsigned long tempo = 0;
 
 //sensores s1
-const byte tringg_pin_1= 21;
+const byte trigg_pin_1= 21;
 const byte echo_pin_1= 19;
 
 //sensores s2
-const byte tringg_pin_2= 25;
+const byte trigg_pin_2= 25;
 const byte echo_pin_2= 27;
 
 
@@ -25,7 +25,7 @@ void setup() {
   pinMode(ledPin, OUTPUT);
 
 //sensores  
-  pinMode(tringg_pin_1, OUTPUT);
+  pinMode(trigg_pin_1, OUTPUT);
   pinMode(echo_pin_1, INPUT);
   //repetir para o 2
   
@@ -52,7 +52,7 @@ void setup() {
   //Enquanto não estiver conectado mostra "."
   
   while (!mqtt.connected()){
-    mqtt.connect(userId.c_str(), BROKER_USR_NAME, BROKER_USR_PASS);
+    mqtt.connect(boardID.c_str(), BROKER_USR_NAME, BROKER_USR_PASS);
     Serial.print(".");
     delay(200);
   }
