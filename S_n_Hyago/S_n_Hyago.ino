@@ -17,7 +17,7 @@ const byte echo_pin_1= 19;
 
 //sensores s2
 const byte trigg_pin_2= 25;
-const byte echo_pin_2= 27;
+const byte echo_pin_2= 26;
 
 
 void setup() {
@@ -28,6 +28,8 @@ void setup() {
   pinMode(trigg_pin_1, OUTPUT);
   pinMode(echo_pin_1, INPUT);
   //repetir para o 2
+pinMode(trigg_pin_2, OUTPUT);
+  pinMode(echo_pin_2, INPUT);
   
   client.setInsecure();                                                                  
   Serial.begin(115200);    //configura a placa para mostrar na tela
@@ -77,7 +79,7 @@ long lerDistancia(int trigg_pin, int echo_pin) {
 void loop() {
   //ler ultrassonico 1
   long distancia_1 = lerDistancia(trigg_pin_1, echo_pin_1);
-  Serial.printf("Distância: %.2fcm\n",distancia_1);
+  Serial.printf("Distância: %scm\n",String(distancia_1));
   
   //se <10 publica
   if (distancia_1 < 10) {
@@ -87,7 +89,7 @@ void loop() {
 
   //ler ultrassonico 2
   long distancia_2 = lerDistancia(trigg_pin_2, echo_pin_2);
-  Serial.printf("Distância: %.2fcm\n",distancia_2);
+  Serial.printf("Distância: %scm\n",String(distancia_2));
   //se <10 publica
   if (distancia_2 < 10) {
   mqtt.publish(TOPIC_PRESENCA_2, "Detectado"); 
