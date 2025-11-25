@@ -3,8 +3,8 @@
 #include "env.h"
 #include <WiFiClientSecure.h>
 
-#define motorF 18
-#define motorT 19
+#define motorF 19
+#define motorT 18
 
 // --- WiFi & MQTT Configuration ---
 const char* WIFI_SSID = SSID;
@@ -12,7 +12,7 @@ const char* WIFI_PASS = PASS;
 
 const char* brokerURL = BROKER_URL;
 const int brokerPort = BROKER_PORT;
-const char* mqttTopic = TOPIC_1;  // Tópico usado para publish/subscribe
+const char* mqttTopic = TOPIC1;  // Tópico usado para publish/subscribe
 
 WiFiClientSecure client;
 PubSubClient mqtt(client);
@@ -39,12 +39,15 @@ void callback(char* topic, byte* payload, unsigned int length) {
   int valorMsg = msgRecebida.toInt();
 
   if (valorMsg > 0) {
+    Serial.println("Frente");
     digitalWrite(motorF, HIGH);
     digitalWrite(motorT, LOW);
   } else if (valorMsg < 0) {
+    Serial.println("Ré");
     digitalWrite(motorF, LOW);
     digitalWrite(motorT, HIGH);
   } else {
+    Serial.println("Para");
     digitalWrite(motorF, LOW);
     digitalWrite(motorT, LOW);
   }
@@ -87,7 +90,7 @@ void setup() {
   Serial.println("Conectando ao broker MQTT...");
   String boardID = "S1-" + String(random(0xffff), HEX);
 
-  while (!mqtt.connect(boardID.c_str(), BROKER_USER_NAME, BROKER_USER_PASS)) {
+  while (!mqtt.connect(boardID.c_str(), BROKER_USR_NAME, BROKER_USR_PASS)) {
     Serial.print(".");
     delay(200);
   }
